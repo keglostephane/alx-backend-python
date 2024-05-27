@@ -3,7 +3,7 @@
 """
 import unittest
 from client import GithubOrgClient
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 from parameterized import parameterized, param
 
 
@@ -14,7 +14,7 @@ class TestGithubOrgClient(unittest.TestCase):
         param(org="abc", result={})
     ])
     @patch('client.get_json')
-    def test_org(self, get_json_mock, org, result):
+    def test_org(self, get_json_mock: Mock, org: str, result: dict):
         """test GitHubOrgClient org method"""
         get_json_mock.return_value = result
         url = f"https://api.github.com/orgs/{org}"
