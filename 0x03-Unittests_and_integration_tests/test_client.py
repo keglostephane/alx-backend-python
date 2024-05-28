@@ -3,7 +3,7 @@
 """
 import unittest
 from client import GithubOrgClient
-from request import HTTPError
+from requests import HTTPError
 from unittest.mock import patch, Mock, PropertyMock
 from parameterized import parameterized, param, parameterized_class
 from fixtures import TEST_PAYLOAD
