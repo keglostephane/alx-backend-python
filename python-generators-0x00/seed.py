@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""A generator that streams rows from an sql database one by one.
+"""Connect to a MySQL server, Create a database and a table and insert data to
+table from a csv file.
 """
 import csv
 import mimetypes
