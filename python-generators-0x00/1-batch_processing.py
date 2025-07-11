@@ -18,6 +18,7 @@ def stream_users_in_batches(batch_size):
     
     while rows := cur.fetchmany(num):
         yield rows
+    return None
 
 def batch_processing(batch_size):
     """Process batch of database rows and filter users over the age of 25.
