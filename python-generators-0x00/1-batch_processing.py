@@ -14,7 +14,10 @@ def stream_users_in_batches(batch_size):
     conn = seed.connect_to_prodev()
     cur = conn.cursor()
     cur.execute("SELECT * FROM user_data")
-    num = batch_size if batch_size > 0 else 1
+    num = batch_size if batch_size > 0 else 0
+
+    if not num:
+        return None
     
     while rows := cur.fetchmany(num):
         yield rows
@@ -26,12 +29,15 @@ def batch_processing(batch_size):
     :param batch_size: number of rows to process
     :type batch_size: int
     """
-    num = batch_size if batch_size > 0 else 1
-    keys = ("user_id", "name", "email", "age")
-    rows = next(stream_users_in_batches(num))
+    try:
+        num = batch_size if batch_size > 0 else 0
+        keys = ("user_id", "name", "email", "age")
+        gen = stream_users_in_batches(num)
 
-    for row in rows:
-        if row[3] > 25:
-            print(dict(zip(keys, row)))
-
-    
+        while rows := next(gen):
+            for row in rows:
+                if row[3] > 25:
+                    print(dict(zip(keys, row)))
+                    
+    except StopIteration:
+        return
