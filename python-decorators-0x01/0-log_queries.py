@@ -12,9 +12,9 @@ def log_queries(func):
     from datetime import datetime
 
     functools.wraps(func)
-    def wrapper(**kargs):
+    def wrapper(*args, **kargs):
         print(f"{datetime.now().isoformat()} - Running: {kargs}")
-        return func(**kargs)
+        return func(*args, **kargs)
 
     return wrapper
 
