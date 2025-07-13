@@ -7,12 +7,15 @@ import functools
 def with_db_connection(func):
     """Open a database connection, pass it to function and close it afterword.
     """
+    
     functools.wraps(func)
-    def wrapper(**kwargs):
+    def wrapper(*args, **kwargs):
         conn = sqlite3.connect("users.db")
-        user = func(conn=conn, **kwargs)
-        conn.close()
-        return user
+        try:
+            return func(conn=conn, **kwargs)
+        finally:
+            conn.close()
+
     return wrapper
         
 
