@@ -25,8 +25,8 @@ def with_db_connection(func):
 def transactional(func):
     """Run a database operation in a transaction.
     """
-    functools.wraps(func)
 
+    @functools.wraps(func)
     def wrapper(*args, **kwargs):
         conn = kwargs.get('conn')
         try:

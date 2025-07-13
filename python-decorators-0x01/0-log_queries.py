@@ -11,7 +11,7 @@ def log_queries(func):
     """Log database queries"""
     from datetime import datetime
 
-    functools.wraps(func)
+    @functools.wraps(func)
     def wrapper(*args, **kargs):
         print(f"{datetime.now().isoformat()} - Running: {kargs}")
         return func(*args, **kargs)
