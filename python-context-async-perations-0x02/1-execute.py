@@ -4,6 +4,7 @@ managing both connection and the query execution.
 """
 import sqlite3
 
+
 class ExecuteQuery:
     """Take a query as input, execute it, managing both connection
     and the query execution.
@@ -28,13 +29,12 @@ class ExecuteQuery:
         self.cur = self.conn.cursor()
 
         if self.query.endswith('?'):
-            self.cur.execute(self.query, (self.param,))
+            self.cur.execute(self.query, (self.param, ))
         else:
             self.cur.execute(self.query)
-    
+
         return self.cur.fetchall()
-        
-    
+
     def __exit__(self, exception_type, exception_value, exception_traceback):
         """Close database connection.
         """
