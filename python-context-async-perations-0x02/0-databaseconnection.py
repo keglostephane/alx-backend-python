@@ -41,8 +41,9 @@ def execute_query(query):
 
 
 # Execute a database query
-query = "SELECT * FROM users"
-rows = execute_query(query)
+if __name__ == "__main__":
+    query = "SELECT * FROM users"
+    rows = execute_query(query)
 
-for row in rows:
-    print(row)
+    for row in rows:
+        print(row)
