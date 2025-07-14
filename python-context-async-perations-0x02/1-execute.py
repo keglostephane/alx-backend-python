@@ -52,7 +52,7 @@ class ExecuteQuery:
 
 
 if __name__ == "__main__":
-    db_name = "users.d"
+    db_name = "users.db"
     query = "SELECT * FROM users WHERE age > ?"
     param = 25
 
