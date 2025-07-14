@@ -13,6 +13,7 @@ class DatabaseConnection:
         """Constructor
         """
         self.db_name = db_name
+        self.conn = None
 
     def __enter__(self):
         """Create database connection.
@@ -26,7 +27,8 @@ class DatabaseConnection:
         if exception_type:
             print(f"{exception_type.__name__}: {exception_value}")
             return True
-        self.conn.close()
+        if self.conn:
+            self.conn.close()
 
 
 def execute_query(query):
