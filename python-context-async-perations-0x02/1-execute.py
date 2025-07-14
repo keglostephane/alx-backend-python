@@ -25,28 +25,34 @@ class ExecuteQuery:
     def __enter__(self):
         """Create database connection and execute a query.
         """
-        self.conn = sqlite3.connect(self.db_name)
-        self.cur = self.conn.cursor()
+        try:
+            self.conn = sqlite3.connect(self.db_name)
+            self.cur = self.conn.cursor()
 
-        if self.query.endswith('?'):
-            self.cur.execute(self.query, (self.param, ))
-        else:
-            self.cur.execute(self.query)
+            if "?" in self.query:
+                self.cur.execute(self.query, (self.param, ))
+            else:
+                self.cur.execute(self.query)
 
-        return self.cur.fetchall()
+                return self.cur.fetchall()
+        except Exception as error:
+            self.conn.close()
+            query = self.query.replace("?", str(self.param))
+            print(f"Failed to execute query: {query}")
+            print(f"Incorrect query or database name '{db_name}'")
 
     def __exit__(self, exception_type, exception_value, exception_traceback):
         """Close database connection.
         """
         if exception_type:
-            print(f"{exception_type.__name__}: {exception_value}")
             return True
+
         if self.conn:
             self.conn.close()
 
 
 if __name__ == "__main__":
-    db_name = "users.db"
+    db_name = "users.d"
     query = "SELECT * FROM users WHERE age > ?"
     param = 25
 
