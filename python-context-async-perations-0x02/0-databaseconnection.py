@@ -25,25 +25,25 @@ class DatabaseConnection:
         """Close database connection.
         """
         if exception_type:
-            print(f"{exception_type.__name__}: {exception_value}")
-            return True
+            return False
         if self.conn:
             self.conn.close()
 
 
-def execute_query(query):
+def execute_query(db_name, query):
     """Execute a database query.
     """
-    with DatabaseConnection("users.db") as conn:
+    with DatabaseConnection(db_name) as conn:
         cur = conn.cursor()
-        cur.execute("SELECT * FROM users")
+        cur.execute(query)
         return cur.fetchall()
 
 
 # Execute a database query
 if __name__ == "__main__":
-    query = "SELECT * FROM users"
-    rows = execute_query(query)
+    db_name = "users.db"
+    query = "SELECT * FROM user"
+    rows = execute_query(db_name, query)
 
     for row in rows:
         print(row)
