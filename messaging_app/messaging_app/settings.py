@@ -19,6 +19,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Django Environ
 
 env = environ.Env()
+
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 # Quick-start development settings - unsuitable for production
@@ -34,6 +35,7 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
+AUTH_USER_MODEL = "chats.User"
 
 INSTALLED_APPS = [
     "django.contrib.admin",
