@@ -18,9 +18,9 @@ class User(AbstractUser):
     first_name = models.CharField("First Name", max_length=150)
     last_name = models.CharField("Last Name", max_length=150)
     email = models.EmailField("Email", unique=True)
-    password_hash = models.CharField("Password")
-    phone_number = models.CharField("Phone", blank=True)
-    role = models.CharField(max_length=5, choices=Role, default=Role.GUEST)
+    password_hash = models.CharField("Password", max_length=255)
+    phone_number = models.CharField("Phone", max_length=20, blank=True)
+    role = models.CharField(max_length=5, choices=Role.choices, default=Role.GUEST)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -31,7 +31,7 @@ class User(AbstractUser):
 
 
 class Message(models.Model):
-    message_id = models.UUIDFIELD(primary_key=True,
+    message_id = models.UUIDField(primary_key=True,
                                   default=uuid.uuid4,
                                   editable=False)
     sender_id = models.ForeignKey(User,
@@ -46,7 +46,7 @@ class Message(models.Model):
 
 
 class Conversation(models.Model):
-    conversation_id = models.UUIDFIELD(primary_key=True,
+    conversation_id = models.UUIDField(primary_key=True,
                                        default=uuid.uuid4,
                                        editable=False)
     participants_id = models.ManyToManyField(User, related_name="conversations")
