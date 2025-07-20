@@ -19,8 +19,9 @@ class UserSerializer(serializers.Serializer):
                                    default=User.Role.GUEST)
     created_at = serializers.DateTimeField(read_only=True)
 
-    def get_full_name(self, obj):
-        return f"{obj.}"
+    def validate_phone_number(self, value):
+        if not value.isdigit():
+            raise serializers.ValidationError("Incorrect phone number")
 
     def create(self, validated_data):
         return User.objects.create(**validated_data)
