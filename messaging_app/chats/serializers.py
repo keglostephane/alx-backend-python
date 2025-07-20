@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import User, Message, Conversation
 
 
-class UserSerializer(serializers.Serializer):
+class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
@@ -20,7 +20,7 @@ class UserSerializer(serializers.Serializer):
             return user
 
 
-class MessageSerializer(serializers.Serializer):
+class MessageSerializer(serializers.ModelSerializer):
     sender = UserSerializer(read_only=True)
 
     class Meta:
@@ -29,7 +29,7 @@ class MessageSerializer(serializers.Serializer):
         read_only_fields = ["sender_id", "message_id", "sent_at"]
 
 
-class ConversationSerializer(serializers.Serializer):
+class ConversationSerializer(serializers.ModelSerializer):
     participants = UserSerializer(many=True)
 
     class Meta:
