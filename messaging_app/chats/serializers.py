@@ -8,7 +8,7 @@ class UserSerializer(serializers.Serializer):
     first_name = serializers.CharField("First Name", max_length=150)
     last_name = serializers.CharField("Last Name", max_length=150)
     email = serializers.EmailField()
-    full_name = serializers.SerializerMethodField(get_full_name(self, obj))
+    full_name = serializers.SerializerMethodField()
     password_hash = serializers.CharField("Password",
                                           max_length=255,
                                           write_only=True)
@@ -19,6 +19,9 @@ class UserSerializer(serializers.Serializer):
                                    default=User.Role.GUEST)
     created_at = serializers.DateTimeField(read_only=True)
 
+    def get_full_name(self, obj):
+        return f"{obj.get_full_name()}"
+    
     def validate_phone_number(self, value):
         if not value.isdigit():
             raise serializers.ValidationError("Incorrect phone number")
