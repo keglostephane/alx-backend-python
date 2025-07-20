@@ -26,6 +26,11 @@ class User(AbstractUser):
     def __str__(self):
         return self.get_full_name()
 
+    def set_password(self, raw_password):
+        """Set the user password."""
+        super().set_password(raw_password)
+        self.password_hash = self.password
+
     class Meta:
         indexes = [models.Index(fields=["email"], name="email_idx"),]
 
