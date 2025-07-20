@@ -8,6 +8,7 @@ class UserSerializer(serializers.Serializer):
     first_name = serializers.CharField("First Name", max_length=150)
     last_name = serializers.CharField("Last Name", max_length=150)
     email = serializers.EmailField()
+    full_name = serializers.SerializerMethodField(get_full_name(self, obj))
     password_hash = serializers.CharField("Password",
                                           max_length=255,
                                           write_only=True)
@@ -17,6 +18,9 @@ class UserSerializer(serializers.Serializer):
     role = serializers.ChoiceField(choices=User.Role.choices,
                                    default=User.Role.GUEST)
     created_at = serializers.DateTimeField(read_only=True)
+
+    def get_full_name(self, obj):
+        return f"{obj.}"
 
     def create(self, validated_data):
         return User.objects.create(**validated_data)
