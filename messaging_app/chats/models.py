@@ -1,6 +1,6 @@
 import uuid
-
 from datetime import datetime
+
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
@@ -18,21 +18,17 @@ class User(AbstractUser):
     first_name = models.CharField("First Name", max_length=150)
     last_name = models.CharField("Last Name", max_length=150)
     email = models.EmailField("Email", unique=True)
-    password_hash = models.CharField("Password", max_length=255)
     phone_number = models.CharField("Phone", max_length=20, blank=True)
-    role = models.CharField(max_length=5, choices=Role.choices, default=Role.GUEST)
+    role = models.CharField(max_length=5,
+                            choices=Role.choices,
+                            default=Role.GUEST)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.get_full_name()
 
-    def set_password(self, raw_password):
-        """Set the user password."""
-        super().set_password(raw_password)
-        self.password_hash = self.password
-
     class Meta:
-        indexes = [models.Index(fields=["email"], name="email_idx"),]
+        indexes = [models.Index(fields=["email"], name="email_idx")]
 
 
 class Message(models.Model):
@@ -54,7 +50,9 @@ class Conversation(models.Model):
     conversation_id = models.UUIDField(primary_key=True,
                                        default=uuid.uuid4,
                                        editable=False)
-    participants_id = models.ManyToManyField(User, related_name="conversations")
+    participants_id = models.ManyToManyField(User,
+                                             related_name="conversations")
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.conversation_id}"
