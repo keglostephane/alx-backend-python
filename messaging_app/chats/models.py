@@ -25,10 +25,10 @@ class User(AbstractUser):
         "Phone",
         max_length=15,
         blank=True,
-        validator=RegexValidator(
+        validators=[RegexValidator(
             regex=r"^\+(?:[0-9]){6,14}[0-9]$",
             message="phone number must start with '+' and contains no spaces. \
-            up to 15 digits allowed."))
+            up to 15 digits allowed.")])
     role = models.CharField(max_length=5,
                             choices=Role.choices,
                             default=Role.GUEST)
