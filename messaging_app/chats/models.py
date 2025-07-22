@@ -76,6 +76,11 @@ class Conversation(models.Model):
         users = [f"{user.get_full_name()}" for user in self.participants.all()]
         return f"Conversation: {users}"
 
+    def clean(self):
+        if self.participants.count() != 2:
+            raise ValidationError(
+                "Conversation must have exactly 2 participants.")
+
 
 class ConversationParticipant(models.Model):
     conversation_id = models.ForeignKey(Conversation, on_delete=models.CASCADE)
