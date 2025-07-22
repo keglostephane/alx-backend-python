@@ -3,6 +3,9 @@ from datetime import datetime
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.conf import settings
+from django.core.validators import RegexValidator
+from django.core.exceptions import ValidationError
 
 
 class User(AbstractUser):
@@ -18,7 +21,14 @@ class User(AbstractUser):
     first_name = models.CharField("First Name", max_length=150)
     last_name = models.CharField("Last Name", max_length=150)
     email = models.EmailField("Email", unique=True)
-    phone_number = models.CharField("Phone", max_length=20, blank=True)
+    phone_number = models.CharField(
+        "Phone",
+        max_length=15,
+        blank=True,
+        validator=RegexValidator(
+            regex=r"^\+(?:[0-9]){6,14}[0-9]$",
+            message="phone number must start with '+' and contains no spaces. \
+            up to 15 digits allowed."))
     role = models.CharField(max_length=5,
                             choices=Role.choices,
                             default=Role.GUEST)
@@ -35,15 +45,22 @@ class Message(models.Model):
     message_id = models.UUIDField(primary_key=True,
                                   default=uuid.uuid4,
                                   editable=False)
-    sender_id = models.ForeignKey(User,
+    sender = models.ForeignKey(settings.AUTH_USER_MODEL,
+                               on_delete=models.CASCADE,
+                               related_name="sent_messages")
+    recipient = models.ForeignKey(settings.AUTH_USER_MODEL,
                                   on_delete=models.CASCADE,
-                                  related_name="messages")
+                                  related_name="received_messages")
     message_body = models.TextField("message")
     sent_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"From {self.sender_id.get_full_name()} at \
         {datetime.isoformat(self.sent_at)}"
+
+    def clean(self):
+        if self.sender == self.recipient:
+            raise ValidationError("Sender must be different Recipient")
 
 
 class Conversation(models.Model):
