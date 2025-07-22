@@ -1,11 +1,11 @@
 import uuid
 from datetime import datetime
 
-from django.contrib.auth.models import AbstractUser
-from django.db import models
 from django.conf import settings
-from django.core.validators import RegexValidator
+from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
+from django.db import models
 
 
 class User(AbstractUser):
@@ -45,12 +45,12 @@ class Message(models.Model):
     message_id = models.UUIDField(primary_key=True,
                                   default=uuid.uuid4,
                                   editable=False)
-    sender = models.ForeignKey(settings.AUTH_USER_MODEL,
-                               on_delete=models.CASCADE,
-                               related_name="sent_messages")
-    recipient = models.ForeignKey(settings.AUTH_USER_MODEL,
+    sender_id = models.ForeignKey(settings.AUTH_USER_MODEL,
                                   on_delete=models.CASCADE,
-                                  related_name="received_messages")
+                                  related_name="sent_messages")
+    recipient_id = models.ForeignKey(settings.AUTH_USER_MODEL,
+                                     on_delete=models.CASCADE,
+                                     related_name="received_messages")
     message_body = models.TextField("message")
     sent_at = models.DateTimeField(auto_now_add=True)
 
@@ -60,16 +60,27 @@ class Message(models.Model):
 
     def clean(self):
         if self.sender == self.recipient:
-            raise ValidationError("Sender must be different Recipient")
+            raise ValidationError("Sender must be different from Recipient")
 
 
 class Conversation(models.Model):
     conversation_id = models.UUIDField(primary_key=True,
                                        default=uuid.uuid4,
                                        editable=False)
-    participants_id = models.ManyToManyField(User,
-                                             related_name="conversations")
+    participants = models.ManyToManyField(settings.AUTH_USER_MODEL,
+                                          through="ConversationParticipant",
+                                          related_name="conversations")
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.conversation_id}"
+        users = [f"{user.get_full_name()}" for user in self.participants.all()]
+        return f"Conversation: {users}"
+
+
+class ConversationParticipant(models.Model):
+    conversation_id = models.ForeignKey(Conversation, on_delete=models.CASCADE)
+    user_id = models.ForeignKey(settings.AUTH_USER_MODEL,
+                                on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ["conversation_id", "user_id"]
