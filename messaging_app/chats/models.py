@@ -46,11 +46,11 @@ class Message(models.Model):
                                   default=uuid.uuid4,
                                   editable=False)
     sender = models.ForeignKey(settings.AUTH_USER_MODEL,
-                                  on_delete=models.CASCADE,
-                                  related_name="sent_messages")
+                               on_delete=models.CASCADE,
+                               related_name="sent_messages")
     recipient = models.ForeignKey(settings.AUTH_USER_MODEL,
-                                     on_delete=models.CASCADE,
-                                     related_name="received_messages")
+                                  on_delete=models.CASCADE,
+                                  related_name="received_messages")
     message_body = models.TextField("message")
     sent_at = models.DateTimeField(auto_now_add=True)
 
@@ -73,7 +73,9 @@ class Conversation(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        users = [f"{user.get_full_name()}" for user in self.participants.all()]
+        users = [
+            f"{user.get_full_name()}" for user in self.participants.all()[:2]
+        ]
         return f"Conversation: {users}"
 
     def clean(self):
