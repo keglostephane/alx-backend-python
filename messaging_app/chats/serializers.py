@@ -36,7 +36,6 @@ class MessageSerializer(serializers.ModelSerializer):
         if not conversation.participants.filter(user_id=recipient).exists():
             raise serializers.ValidationError(
                 "Recipient must be part of the conversation.")
-
         return Message.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
@@ -59,7 +58,6 @@ class MessageSerializer(serializers.ModelSerializer):
         instance.message_body = validated_data.get("message_body",
                                                    instance.message_body)
         instance.save()
-
         return instance
 
 
