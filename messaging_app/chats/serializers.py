@@ -11,8 +11,10 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class MessageSerializer(serializers.ModelSerializer):
-    sender = serializers.SlugRelatedField(many=False, slug_field="email")
-    recipient = serializers.SlugRelatedField(many=False, slug_field="email")
+    sender = serializers.SlugRelatedField(many=False, slug_field="email",
+                                          queryset=User.objects.all())
+    recipient = serializers.SlugRelatedField(many=False, slug_field="email",
+                                             queryset=User.objects.all())
     conversation = serializers.PrimaryKeyRelatedField(
         queryset=Conversation.objects.all())
     subject = serializers.CharField(max_length=50, allow_blank=True)
