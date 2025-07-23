@@ -1,4 +1,4 @@
-from chats.models import Conversation, Message, User
+from .models import Conversation, Message, User
 from rest_framework import serializers
 
 
@@ -15,10 +15,13 @@ class MessageSerializer(serializers.ModelSerializer):
     recipient = serializers.SlugRelatedField(many=False, slug_field="email")
     conversation = serializers.PrimaryKeyRelatedField(
         queryset=Conversation.objects.all())
+    subject = serializers.CharField(max_length=50, allow_blank=True)
 
     class Meta:
         model = Message
-        fields = ["sender", "recipient", "message_body", "conversation"]
+        fields = [
+            "sender", "recipient", "message_body", "conversation", "subject"
+        ]
         read_only_fields = ["message_id", "sent_at"]
 
     def create(self, validated_data):
