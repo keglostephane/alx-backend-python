@@ -87,11 +87,12 @@ class Message(models.Model):
     conversation = models.ForeignKey(Conversation,
                                      on_delete=models.CASCADE,
                                      related_name="messages")
+    message_subject = models.CharField("Subject", max_length=50, blank=True)
     message_body = models.TextField("message")
     sent_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"From {self.sender.get_full_name()} at \
+        return f"{self.message_subject} From {self.sender.get_full_name()} at \
         {datetime.isoformat(self.sent_at)}"
 
     def clean(self):
