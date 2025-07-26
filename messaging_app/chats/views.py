@@ -1,15 +1,16 @@
-from .models import Conversation, Message
-from .serializers import ConversationSerializer, MessageSerializer
 from django.db.models import Q
 from rest_framework import filters, status, viewsets
 from rest_framework.response import Response
+
+from .models import Conversation, Message
+from .serializers import ConversationSerializer, MessageSerializer
 
 
 class MessageViewSet(viewsets.ModelViewSet):
     queryset = Message.objects.all()
     serializer_class = MessageSerializer
     filter_backends = [filters.SearchFilter]
-    search_fields = ["subject", "message_body"]
+    search_fields = ["message_subject", "message_body"]
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -22,13 +23,14 @@ class MessageViewSet(viewsets.ModelViewSet):
 
         if search_query:
             queryset = queryset.filter(
-                Q(subject__icontains=search_query)
+                Q(message_subject__icontains=search_query)
                 | Q(message_body__icontains=search_query))
 
         return queryset
 
-    def create(self, request, conversation_id, **kwargs):
+    def create(self, request, **kwargs):
         try:
+            conversation_id = kwargs.get("conversation_pk")
             conversation = Conversation.objects.get(
                 conversation_id=conversation_id)
         except Conversation.DoesNotExist:
