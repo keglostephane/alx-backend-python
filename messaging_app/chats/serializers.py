@@ -11,18 +11,22 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class MessageSerializer(serializers.ModelSerializer):
-    sender = serializers.SlugRelatedField(many=False, slug_field="email",
+    sender = serializers.SlugRelatedField(many=False,
+                                          slug_field="email",
                                           queryset=User.objects.all())
-    recipient = serializers.SlugRelatedField(many=False, slug_field="email",
+    recipient = serializers.SlugRelatedField(many=False,
+                                             slug_field="email",
                                              queryset=User.objects.all())
     conversation = serializers.PrimaryKeyRelatedField(
-        queryset=Conversation.objects.all())
-    subject = serializers.CharField(max_length=50, allow_blank=True)
+        queryset=Conversation.objects.all(),
+        pk_field=serializers.UUIDField(format="hex"))
+    message_subject = serializers.CharField(max_length=50, allow_blank=True)
 
     class Meta:
         model = Message
         fields = [
-            "sender", "recipient", "message_body", "conversation", "subject"
+            "message_id", "sent_at", "message_subject", "sender", "recipient",
+            "message_body", "conversation"
         ]
         read_only_fields = ["message_id", "sent_at"]
 
@@ -31,11 +35,11 @@ class MessageSerializer(serializers.ModelSerializer):
         sender = validated_data.get("sender")
         recipient = validated_data.get("recipient")
 
-        if not conversation.participants.filter(user_id=sender).exists():
+        if not conversation.participants.filter(user_id=sender.user_id).exists():
             raise serializers.ValidationError(
                 "Sender must be part of the conversation.")
 
-        if not conversation.participants.filter(user_id=recipient).exists():
+        if not conversation.participants.filter(user_id=recipient.user_id).exists():
             raise serializers.ValidationError(
                 "Recipient must be part of the conversation.")
         return Message.objects.create(**validated_data)
@@ -46,11 +50,13 @@ class MessageSerializer(serializers.ModelSerializer):
         sender = validated_data.get("sender", instance.sender)
         recipient = validated_data.get("recipient", instance.recipient)
 
-        if not conversation.participants.filter(user_id=sender).exists():
+        if not conversation.participants.filter(
+                user_id=sender.user_id).exists():
             raise serializers.ValidationError(
                 "Sender must be part of the conversation.")
 
-        if not conversation.participants.filter(user_id=recipient).exists():
+        if not conversation.participants.filter(
+                user_id=recipient.user_id).exists():
             raise serializers.ValidationError(
                 "Recipient must be part of the conversation.")
 
@@ -59,6 +65,7 @@ class MessageSerializer(serializers.ModelSerializer):
         instance.conversation = conversation
         instance.message_body = validated_data.get("message_body",
                                                    instance.message_body)
+        instance.message_subject = validated_data.get("message_subject", instance.message_subject)
         instance.save()
         return instance
 
@@ -71,7 +78,7 @@ class ConversationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Conversation
-        fields = ["participants"]
+        fields = ["conversation_id", "created_at", "participants", "messages"]
         read_only_fields = ["conversation_id", "created_at"]
 
     def get_messages(self, obj):
