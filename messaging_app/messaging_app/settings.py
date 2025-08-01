@@ -155,3 +155,9 @@ REST_FRAMEWORK = {
 # CORS settings
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+# Simple JWT
+
+SIMPLE_JWT = {
+    "USER_ID_FIELD": "user_id"
+}

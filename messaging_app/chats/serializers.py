@@ -35,11 +35,13 @@ class MessageSerializer(serializers.ModelSerializer):
         sender = validated_data.get("sender")
         recipient = validated_data.get("recipient")
 
-        if not conversation.participants.filter(user_id=sender.user_id).exists():
+        if not conversation.participants.filter(
+                user_id=sender.user_id).exists():
             raise serializers.ValidationError(
                 "Sender must be part of the conversation.")
 
-        if not conversation.participants.filter(user_id=recipient.user_id).exists():
+        if not conversation.participants.filter(
+                user_id=recipient.user_id).exists():
             raise serializers.ValidationError(
                 "Recipient must be part of the conversation.")
         return Message.objects.create(**validated_data)
@@ -65,7 +67,8 @@ class MessageSerializer(serializers.ModelSerializer):
         instance.conversation = conversation
         instance.message_body = validated_data.get("message_body",
                                                    instance.message_body)
-        instance.message_subject = validated_data.get("message_subject", instance.message_subject)
+        instance.message_subject = validated_data.get("message_subject",
+                                                      instance.message_subject)
         instance.save()
         return instance
 
