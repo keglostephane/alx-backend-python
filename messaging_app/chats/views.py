@@ -1,15 +1,17 @@
 from django.db.models import Q
 from rest_framework import filters, status, viewsets
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .models import Conversation, Message
+from .permissions import IsParticipantOfConversation
 from .serializers import ConversationSerializer, MessageSerializer
-from .permissions import IsSenderOrRecipient, IsSender
 
 
 class MessageViewSet(viewsets.ModelViewSet):
     queryset = Message.objects.all()
     serializer_class = MessageSerializer
+    permission_classes = [IsParticipantOfConversation]
     filter_backends = [filters.SearchFilter]
     search_fields = ["message_subject", "message_body"]
 
@@ -34,21 +36,20 @@ class MessageViewSet(viewsets.ModelViewSet):
 
         return queryset
 
-    def get_permissions(self):
-        if self.action in ["create", "update", "destroy"]:
-            self.permission_classes = [IsSender]
-        if self.action in ["list", "retrieve"]:
-            self.permission_classes = [IsSenderOrRecipient]
-        return super().get_permissions()
-
     def create(self, request, **kwargs):
         try:
             conversation_id = kwargs.get("conversation_pk")
             conversation = Conversation.objects.get(
                 conversation_id=conversation_id)
         except Conversation.DoesNotExist:
-            return Response({"message": "Conversation not found."},
+            return Response({"detail": "Conversation not found."},
                             status=status.HTTP_404_NOT_FOUND)
+
+        if not conversation.partipants.filter(
+                email=request.user.email).exists():
+            return Response(
+                {"detail": "you do not permission to perform this action."},
+                status=status.HTTP_403_FORBIDDEN)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(conversation=conversation)
@@ -71,15 +72,13 @@ class MessageViewSet(viewsets.ModelViewSet):
 class ConversationViewSet(viewsets.ModelViewSet):
     queryset = Conversation.objects.all()
     serializer_class = ConversationSerializer
+    permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter]
     search_fields = ["participants__first_name", "participants__last_name"]
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        user_email = self.request.user.email
         search_query = self.request.query_params.get("search", None)
-
-        queryset = queryset.filter(participants__email=user_email)
 
         if search_query:
             queryset = queryset.filter(
