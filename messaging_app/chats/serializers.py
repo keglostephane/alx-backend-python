@@ -1,5 +1,6 @@
-from .models import Conversation, Message, User
 from rest_framework import serializers
+
+from .models import Conversation, Message, User
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -30,41 +31,43 @@ class MessageSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["message_id", "sent_at"]
 
+    def validate_sender(self, sender):
+        conversation = self.initial_data.get("conversation")
+
+        if conversation:
+            conversation = Conversation.objects.get(pk=conversation)
+            if not conversation.participants.filter(
+                    user_id=sender.user_id).exists():
+                raise serializers.ValidationError(
+                    "Sender must be part of the conversation.")
+        return sender
+
+    def validate_recipient(self, recipient):
+        conversation = self.initial_data.get("conversation")
+
+        if conversation:
+            conversation = Conversation.objects.get(pk=conversation)
+            if not conversation.participants.filter(
+                    user_id=recipient.user_id).exists():
+                raise serializers.ValidationError(
+                    "Recipient must be part of the conversation.")
+        return recipient
+
+    def validate(self, attrs):
+        if attrs["sender"] == attrs["recipient"]:
+            raise serializers.ValidationError(
+                "Sender must be different from Recipient.")
+        return attrs
+
     def create(self, validated_data):
-        conversation = validated_data.get("conversation")
-        sender = validated_data.get("sender")
-        recipient = validated_data.get("recipient")
-
-        if not conversation.participants.filter(
-                user_id=sender.user_id).exists():
-            raise serializers.ValidationError(
-                "Sender must be part of the conversation.")
-
-        if not conversation.participants.filter(
-                user_id=recipient.user_id).exists():
-            raise serializers.ValidationError(
-                "Recipient must be part of the conversation.")
         return Message.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
-        conversation = validated_data.get("conversation",
-                                          instance.conversation)
-        sender = validated_data.get("sender", instance.sender)
-        recipient = validated_data.get("recipient", instance.recipient)
-
-        if not conversation.participants.filter(
-                user_id=sender.user_id).exists():
-            raise serializers.ValidationError(
-                "Sender must be part of the conversation.")
-
-        if not conversation.participants.filter(
-                user_id=recipient.user_id).exists():
-            raise serializers.ValidationError(
-                "Recipient must be part of the conversation.")
-
-        instance.sender = sender
-        instance.recipient = recipient
-        instance.conversation = conversation
+        instance.sender = validated_data.get("sender", instance.sender)
+        instance.recipient = validated_data.get("recipient",
+                                                instance.recipient)
+        instance.conversation = validated_data.get("conversation",
+                                                   instance.conversation)
         instance.message_body = validated_data.get("message_body",
                                                    instance.message_body)
         instance.message_subject = validated_data.get("message_subject",
@@ -77,13 +80,8 @@ class ConversationSerializer(serializers.ModelSerializer):
     participants = serializers.SlugRelatedField(many=True,
                                                 slug_field="email",
                                                 queryset=User.objects.all())
-    messages = serializers.SerializerMethodField()
 
     class Meta:
         model = Conversation
-        fields = ["conversation_id", "created_at", "participants", "messages"]
+        fields = ["conversation_id", "created_at", "participants"]
         read_only_fields = ["conversation_id", "created_at"]
-
-    def get_messages(self, obj):
-        messages = obj.messages.all()
-        return MessageSerializer(messages, many=True).data
