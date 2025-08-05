@@ -25,7 +25,7 @@ urlpatterns = [
     path(r"", include(router.urls)),
     path(r"", include(conversations_router.urls)),
     path(r"", include(messages_router.urls)),
-    path(r"messages/conversation/<str:conversation_id>",
+    path(r"messages/conversations/<str:conversation_id>",
          MessageViewSet.as_view({"get": "messages_by_conversation"}),
          name="messages-conversation-list")
 ]
