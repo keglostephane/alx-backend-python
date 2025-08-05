@@ -1,19 +1,21 @@
 from django.db.models import Q
-from rest_framework import filters, status, viewsets
+from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from django_filters import rest_framework as filters
 
 from .models import Conversation, Message
-from .permissions import IsParticipantOfConversation
+from .permissions import IsParticipantOfConversation, IsSenderOrRecipient
 from .serializers import ConversationSerializer, MessageSerializer
+from .filters import MessageFilter, ConversationFilter
 
 
 class MessageViewSet(viewsets.ModelViewSet):
-    queryset = Message.objects.all()
+    queryset = Message.objects.all().order_by("-sent_at")
     serializer_class = MessageSerializer
-    permission_classes = [IsParticipantOfConversation]
-    filter_backends = [filters.SearchFilter]
-    search_fields = ["message_subject", "message_body"]
+    permission_classes = [IsSenderOrRecipient]
+    filter_backends = [filters.DjangoFilterBackend]
+    filterset_class = MessageFilter
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -45,7 +47,7 @@ class MessageViewSet(viewsets.ModelViewSet):
             return Response({"detail": "Conversation not found."},
                             status=status.HTTP_404_NOT_FOUND)
 
-        if not conversation.partipants.filter(
+        if not conversation.participants.filter(
                 email=request.user.email).exists():
             return Response(
                 {"detail": "you do not permission to perform this action."},
@@ -57,7 +59,6 @@ class MessageViewSet(viewsets.ModelViewSet):
 
     def messages_by_conversation(self, request, conversation_id=None):
         try:
-            print(request.query_params)
             conversation = Conversation.objects.get(
                 conversation_id=conversation_id)
             messages = Message.objects.filter(conversation=conversation)
@@ -70,11 +71,11 @@ class MessageViewSet(viewsets.ModelViewSet):
 
 
 class ConversationViewSet(viewsets.ModelViewSet):
-    queryset = Conversation.objects.all()
+    queryset = Conversation.objects.all().order_by("-created_at")
     serializer_class = ConversationSerializer
-    permission_classes = [IsAuthenticated]
-    filter_backends = [filters.SearchFilter]
-    search_fields = ["participants__first_name", "participants__last_name"]
+    permission_classes = [IsParticipantOfConversation]
+    filter_backends = [filters.DjangoFilterBackend]
+    filterset_class = ConversationFilter
 
     def get_queryset(self):
         queryset = super().get_queryset()
