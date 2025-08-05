@@ -11,7 +11,7 @@ class IsSenderOrRecipient(permissions.BasePermission):
     def has_permission(self, request, view):
         return request.user.is_authenticated and Message.objects.filter(
             Q(sender__email__exact=request.user.email)
-            | Q(recipient__email__exact=request.user.email)).exists()
+            | Q(recipient__email__exact=request.user.email))
 
 
 class IsParticipantOfConversation(permissions.BasePermission):
@@ -21,7 +21,12 @@ class IsParticipantOfConversation(permissions.BasePermission):
     def has_permission(self, request, view):
         if request.method in ["GET", "POST", "PUT", "PATCH", "DELETE"]:
             conversation_id = view.kwargs.get("conversation_pk")
-            return request.user.is_authenticated and Conversation.objects.filter(
-                conversation_id=conversation_id,
-                participants__email__exact=request.user.email)
-        return request.user.is_authenticated
+            if conversation_id:
+                return request.user.is_authenticated and \
+                    Conversation.objects.filter(
+                    conversation_id=conversation_id,
+                    participants__email__exact=request.user.email)
+
+        return request.user.is_authenticated and \
+                    Conversation.objects.filter(
+                    participants__email__exact=request.user.email)
