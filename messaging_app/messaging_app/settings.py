@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "corsheaders",
-    "drf_yasg"
+    "drf_yasg",
+    "django_filters"
 ]
 
 MIDDLEWARE = [
@@ -139,8 +140,14 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.SessionAuthentication",
         "rest_framework.authentication.BasicAuthentication"
     ],
-    "DEFAULT_PERMISSION_CLASSES":
-    ["rest_framework.permissions.IsAuthenticated"]
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+    "DEFAULT_FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend",
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'chats.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20
 }
 
 # CORS settings
@@ -151,5 +158,5 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 SIMPLE_JWT = {
     "USER_ID_FIELD": "user_id",
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60)
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1)
 }
