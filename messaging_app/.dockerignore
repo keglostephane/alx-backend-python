@@ -1,0 +1,10 @@
+# Python
+venv/
+*.pyc
+
+# Emacs
+*~
+\#*\#
+
+# Secrets
+.env 
