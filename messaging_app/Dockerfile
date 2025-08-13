@@ -12,8 +12,8 @@ RUN apt-get update && \
 WORKDIR /app
 
 # Copy and install Python requirements
-COPY requirement.txt .
-RUN pip install --no-cache-dir -r requirement.txt
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY . .
