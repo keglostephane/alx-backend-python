@@ -1,6 +1,7 @@
 services:
   web:
     build: .
+    command: python manage.py 0.0.0.0:8000
     ports:
       - "8000:8000"
     depends_on:
@@ -12,6 +13,6 @@ services:
     restart: "no"
     environment:
       MYSQL_USER: ${DB_USER}
-      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_DB: ${DB_NAME}
       MYSQL_PASSWORD: ${DB_PWD}
       MYSQL_ROOT_PASSWORD: ${DB_PWD}
