@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: messaging-app
+  labels:
+    app: messaging-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: messaging-app
+  template:
+    metadata:
+      labels:
+        app: messaging-app
+    spec:
+      containers:
+        - name: messaging-app
+          image: alx-backend-python/messaging_app:1.0
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: messaging-env
+                  key: DB_NAME
+            - name: DB_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: messaging-env
+                  key: DB_USER
+            - name: DB_PWD
+              valueFrom:
+                configMapKeyRef:
+                  name: messaging-env
+                  key: DB_PWD
+            - name: SECRET_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: messaging-env
+                  key: SECRET_KEY
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: messaging-env
+                  key: DB_HOST
+            - name: DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: messaging-env
+                  key: DB_PORT
+            - name: DEBUG
+              valueFrom:
+                configMapKeyRef:
+                  name: messaging-env
+                  key: DEBUG
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: messaging-app
+spec:
+  type: ClusterIP
+  selector:
+    app: messaging-app
+  ports:
+    - port: 8000
+      targetPort: 8000
