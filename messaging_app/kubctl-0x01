@@ -1,0 +1,30 @@
+#!/bin/bash
+
+APP="messaging-app"
+
+if ! minikube status | grep -q "Running"; then
+	echo "Starting Minikube ..."
+	minikube start
+fi
+	
+echo "Checking if $APP is already deployed ..."
+
+if ! kubectl get pods | grep -q $APP; then
+	echo "Deploying $APP ..."
+	kubectl apply -f deployment.yaml
+	echo "Scaling $APP to use 3 containers ..."
+	kubectl scale --replicas=3 -f deployment.yaml
+	sleep 30s
+fi
+
+
+echo "List running pods"
+kubectl get pods --all-namespaces
+
+echo "Monitoring resource usage while performing load testing  ..."
+echo "wrk -t12 -c400 -d30s http://$IP:$PORT/"
+kubectl top pod
+wrk -t12 -c400 -d30s http://$(minikube ip):30000/
+
+echo "Load testing on $APP complete !"
+exit 0
