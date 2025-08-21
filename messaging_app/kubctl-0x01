@@ -5,6 +5,11 @@ APP="messaging-app"
 if ! minikube status | grep -q "Running"; then
 	echo "Starting Minikube ..."
 	minikube start
+	
+	if ! kubectl get pods -n kube-system | grep -q "metrics-server"; then
+		echo "Enabling metrics-server addon ..."
+		minikube addons enable metrics-server
+	fi
 fi
 	
 echo "Checking if $APP is already deployed ..."
@@ -12,11 +17,14 @@ echo "Checking if $APP is already deployed ..."
 if ! kubectl get pods | grep -q $APP; then
 	echo "Deploying $APP ..."
 	kubectl apply -f deployment.yaml
-	echo "Scaling $APP to use 3 containers ..."
+	echo "Scaling $APP to use 3 pods ..."
 	kubectl scale --replicas=3 -f deployment.yaml
 	sleep 30s
 fi
 
+# Wait for metrics-server to be ready
+echo "Waiting for metrics-server to be ready..."
+kubectl wait --for=condition=ready --timeout=60s deployment/metrics-server -n kube-system
 
 echo "List running pods"
 kubectl get pods --all-namespaces
@@ -24,7 +32,7 @@ kubectl get pods --all-namespaces
 echo "Monitoring resource usage while performing load testing  ..."
 echo "wrk -t12 -c400 -d30s http://$IP:$PORT/"
 kubectl top pod
-wrk -t12 -c400 -d30s http://$(minikube ip):30000/
+wrk -t12 -c400 -d30s "http://$(minikube ip):30000/"
 
 echo "Load testing on $APP complete !"
 exit 0
