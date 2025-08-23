@@ -1,0 +1,53 @@
+#!/bin/bash
+#
+# Set up a blue-green deployment strategy in kubernetes
+
+# Ensure minikube is running
+if ! minikube status | grep -q "Running"; then
+	echo "Starting Minikube ..."
+	minikube start
+	sleep 15s
+fi
+
+# Deploy blue and green pods and services
+kubectl apply -f blue_deployment.yaml
+kubectl apply -f green_deployment.yaml
+sleep 10s
+
+# Deploy messaging-app ingress
+kubectl apply -f kubeservice.yaml
+
+# Get Blue and Green pod name
+BLUE_POD_NAME=$(kubectl get pods -l version=blue -o jsonpath='{.items[0].metadata.name}')
+GREEN_POD_NAME=$(kubectl get pods -l version=green -o jsonpath='{.items[0].metadata.name}')
+
+
+# Ensure pods are running and apply database migrations
+if kubectl get pod $BLUE_POD_NAME -o jsonpath='{.status.containerStatuses[0].ready}' &> /dev/null && \
+		kubectl get pod $BLUE_POD_NAME -o jsonpath='{.status.containerStatuses[0].ready}' &> /dev/null; then
+	echo "Applying database migration on blue pod"
+	kubectl exec $BLUE_POD_NAME -- python manage.py migrate
+fi
+
+
+if kubectl get pod $GREEN_POD_NAME -o jsonpath='{.status.containerStatuses[0].ready}' &> /dev/null && \
+		kubectl get pod $GREEN_POD_NAME -o jsonpath='{.status.containerStatuses[0].ready}' &> /dev/null; then
+	echo "Applying database migration on green pod"
+	kubectl exec $GREEN_POD_NAME -- python manage.py migrate
+fi
+
+
+# Make a request on green pod check for errors
+kubectl exec $GREEN_POD_NAME -- curl localhost:8000/api/ &> /dev/null
+if kubectl logs $GREEN_POD_NAME | grep -i "Traceback|exceptions"; then
+	echo "request execution failed !"
+	echo "Stopping green pod ..."
+	exit 1
+else
+	echo "Modifying messaging-app-router to serve green pod ..."
+	sed -i 's/messaging-app-blue/messaging-app-green/g' kubeservice.yaml
+	echo "Switching to green pod ..."
+	kubectl apply -f kubeservice.yaml
+fi
+
+exit 0
